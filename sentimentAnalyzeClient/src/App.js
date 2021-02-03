@@ -13,7 +13,7 @@ class App extends React.Component {
                     sentimentOutput:[],
                     sentiment:true
                   };
-      this.url = 'http://localhost:8080';
+      this.url = 'http://thomas-kwok-sentiment-analyzer-exhausted-otter-ei.mybluemix.net';
   }
 
   renderTextArea = ()=>{
