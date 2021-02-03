@@ -27,25 +27,92 @@ app.use(express.static('client'))
 const cors_app = require('cors');
 app.use(cors_app());
 
+// app.use(getNLUInstance());
+
+const naturalLanguageUnderstanding = getNLUInstance();
+
 app.get("/",(req,res)=>{
     res.render('index.html');
-  });
-
-app.get("/url/emotion", (req,res) => {
-
-    return res.send({"happy":"90","sad":"10"});
 });
 
-app.get("/url/sentiment", (req,res) => {
-    return res.send("url sentiment for "+req.query.url);
+const getParams = (content) => {
+    const analyzeParams = {...{
+        "features": {
+            "concepts": {},
+            "entities": {},
+            "keywords": {},
+            "categories": {},
+            "emotion": {},
+            "sentiment": {},
+            "semantic_roles": {},
+            "syntax": {
+                "tokens": {
+                    "lemma": true,
+                    "part_of_speech": true
+                },
+                "sentences": true
+            }
+        },
+    }, ...content}
+    return analyzeParams
+}
+
+app.get("/url/emotion", (req, res) => {
+    const url = req.query.url;
+    naturalLanguageUnderstanding.analyze(getParams({
+            "url": url
+        }))
+        .then(analysisResults => {
+            res.json(analysisResults.result.emotion.document.emotion);
+        })
+        .catch(err => {
+            res.status(400).json({
+                "error": 404
+            });
+        });
 });
 
-app.get("/text/emotion", (req,res) => {
-    return res.send({"happy":"10","sad":"90"});
+app.get("/url/sentiment", (req, res) => {
+    const url = req.query.url;
+    naturalLanguageUnderstanding.analyze(getParams({
+            "url": url
+        }))
+        .then(analysisResults => {
+            res.json(analysisResults.result.sentiment.document);
+        })
+        .catch(err => {
+            res.status(400).json({
+                "error": 404
+            });
+        });
 });
 
-app.get("/text/sentiment", (req,res) => {
-    return res.send("text sentiment for "+req.query.text);
+app.get("/text/emotion", (req, res) => {
+    const text = req.query.text;
+    naturalLanguageUnderstanding.analyze(getParams({"text": text}))
+    .then(analysisResults => {
+        res.json(analysisResults.result.emotion.document.emotion);
+    })
+    .catch(err => {
+        res.status(400).json({
+            "error": 404
+        });
+    });
+});
+
+app.get("/text/sentiment", (req, res) => {
+    const text = req.query.text;
+    naturalLanguageUnderstanding.analyze(getParams({
+            "text": text
+        }))
+        .then(analysisResults => {
+            res.json(analysisResults.result.sentiment.document);
+        })
+        .catch(err => {
+            res.status(400).json({
+                "error": 404
+            });
+        });
 });
 
 let server = app.listen(8080, () => {

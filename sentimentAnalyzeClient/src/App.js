@@ -5,12 +5,17 @@ import React from 'react';
 import axios from 'axios';
 
 class App extends React.Component {
-  state = {innercomp:<textarea rows="4" cols="50" id="textinput"/>,
-            mode: "text",
-          sentimentOutput:[],
-          sentiment:true
-        }
-  
+
+  constructor(props) {
+      super(props);
+      this.state = {innercomp:<textarea rows="4" cols="50" id="textinput"/>,
+                    mode: "text",
+                    sentimentOutput:[],
+                    sentiment:true
+                  };
+      this.url = 'http://localhost:8080';
+  }
+
   renderTextArea = ()=>{
     document.getElementById("textinput").value = "";
     if(this.state.mode === "url") {
@@ -19,7 +24,7 @@ class App extends React.Component {
       sentimentOutput:[],
       sentiment:true
     })
-    } 
+    }
   }
 
   renderTextBox = ()=>{
@@ -36,7 +41,7 @@ class App extends React.Component {
   sendForSentimentAnalysis = () => {
     this.setState({sentiment:true});
     let ret = "";
-    let url = ".";
+    let url = this.url;
 
     if(this.state.mode === "url") {
       url = url+"/url/sentiment?url="+document.getElementById("textinput").value;
@@ -45,26 +50,24 @@ class App extends React.Component {
     }
     ret = axios.get(url);
     ret.then((response)=>{
-
       //Include code here to check the sentiment and fomrat the data accordingly
-
-      this.setState({sentimentOutput:response.data});
-      let output = response.data;
-      if(response.data === "positive") {
-        output = <div style={{color:"green",fontSize:20}}>{response.data}</div>
-      } else if (response.data === "negative"){
-        output = <div style={{color:"red",fontSize:20}}>{response.data}</div>
+      console.log(response.data);
+      let output = response.data.label;
+      if(output === "positive") {
+        output = <div style={{color:"green",fontSize:20}}>{output}</div>
+      } else if (output === "negative"){
+        output = <div style={{color:"red",fontSize:20}}>{output}</div>
       } else {
-        output = <div style={{color:"orange",fontSize:20}}>{response.data}</div>
+        output = <div style={{color:"orange",fontSize:20}}>{output}</div>
       }
       this.setState({sentimentOutput:output});
-    });
+    }).catch(() => alert('Invaild input!'));
   }
 
   sendForEmotionAnalysis = () => {
     this.setState({sentiment:false});
     let ret = "";
-    let url = ".";
+    let url = this.url;
     if(this.state.mode === "url") {
       url = url+"/url/emotion?url="+document.getElementById("textinput").value;
     } else {
@@ -74,15 +77,15 @@ class App extends React.Component {
 
     ret.then((response)=>{
       this.setState({sentimentOutput:<EmotionTable emotions={response.data}/>});
-  });
+    }).catch(() => alert('Invaild input!'));
   }
-  
 
   render() {
+    const mode = this.state.mode;
     return (  
       <div className="App">
-      <button className="btn btn-info" onClick={this.renderTextArea}>Text</button>
-        <button className="btn btn-dark"  onClick={this.renderTextBox}>URL</button>
+        <button className={mode === 'text'? "btn btn-info" : "btn btn-dark"} onClick={this.renderTextArea}>Text</button>
+        <button className={mode === 'url'? "btn btn-info" : "btn btn-dark"}  onClick={this.renderTextBox}>URL</button>
         <br/><br/>
         {this.state.innercomp}
         <br/>
